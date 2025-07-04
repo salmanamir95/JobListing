@@ -1,0 +1,67 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install Python dependencies
+      working-directory: backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit pip-audit
+
+    - name: Install Node dependencies
+      working-directory: frontend
+      run: npm install
+
+    - name: Run Django tests
+      working-directory: backend
+      run: |
+        echo "=== Django Unit Tests ===" >> ../test_log.txt
+        python manage.py test >> ../test_log.txt 2>&1 || echo "Tests failed"
+
+    - name: Run Python security scans
+      working-directory: backend
+      run: |
+        echo "=== Bandit Security Scan ===" >> ../test_log.txt
+        bandit -r . >> ../test_log.txt 2>&1 || echo "Bandit failed"
+
+        echo "=== pip-audit ===" >> ../test_log.txt
+        pip-audit >> ../test_log.txt 2>&1 || echo "pip-audit failed"
+
+    - name: Run npm audit
+      working-directory: frontend
+      run: |
+        echo "=== npm audit ===" >> ../test_log.txt
+        npm audit --omit=dev >> ../test_log.txt 2>&1 || echo "npm audit failed"
+
+    - name: Append timestamp
+      run: echo "=== Run completed at $(date) ===" >> test_log.txt
+
+    - name: Commit & Push test_log.txt
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add test_log.txt
+        git commit -m "chore: append test and security logs [skip ci]" || echo "No changes to commit"
+        git push

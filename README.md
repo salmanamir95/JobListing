@@ -50,29 +50,7 @@ A full-stack multi-tenant SaaS job board where employers can post job listings b
 
 ---
 
-## 🗂 Folder Structure
 
-```
-project/
-│
-├── backend/
-│   ├── jobboard/          # Django app for jobs, users, roles
-│   ├── manage.py
-│   └── Dockerfile
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   ├── components/
-│   │   └── App.js
-│   └── Dockerfile
-│
-├── docker-compose.yml
-├── .env
-└── .github/workflows/deploy.yml
-```
-
----
 
 ## 🚀 Getting Started
 
